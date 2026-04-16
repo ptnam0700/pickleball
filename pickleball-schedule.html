@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lịch Thi Đấu Pickleball</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f4f7f4;
+      min-height: 100vh;
+      color: #1a1a1a;
+    }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%);
+      color: white;
+      padding: 24px 20px 20px;
+      text-align: center;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+    }
+    .header .icon { font-size: 2.2em; margin-bottom: 6px; }
+    .header h1 { font-size: 1.4em; font-weight: 700; letter-spacing: 0.5px; }
+    .header p { font-size: 0.85em; opacity: 0.85; margin-top: 4px; }
+
+    /* SEARCH */
+    .search-section {
+      background: white;
+      padding: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .search-wrapper { position: relative; max-width: 500px; margin: 0 auto; }
+    .search-wrapper input {
+      width: 100%;
+      padding: 13px 48px 13px 18px;
+      font-size: 16px;
+      border: 2.5px solid #e0e0e0;
+      border-radius: 50px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fafafa;
+    }
+    .search-wrapper input:focus {
+      border-color: #2e7d32;
+      box-shadow: 0 0 0 3px rgba(46,125,50,0.12);
+      background: white;
+    }
+    .search-wrapper .search-btn {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #2e7d32;
+      border: none;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1em;
+    }
+
+    /* SUGGESTIONS */
+    .suggestions-box {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      overflow: hidden;
+      display: none;
+      z-index: 100;
+    }
+    .suggestions-box.show { display: block; }
+    .suggestion-item {
+      padding: 11px 18px;
+      cursor: pointer;
+      font-size: 0.95em;
+      border-bottom: 1px solid #f5f5f5;
+      transition: background 0.15s;
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover, .suggestion-item.active { background: #f1f8f1; color: #2e7d32; font-weight: 600; }
+
+    /* CONTENT AREA */
+    .content { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+    /* WELCOME STATE */
+    .welcome-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: #888;
+    }
+    .welcome-state .big-icon { font-size: 3.5em; margin-bottom: 12px; }
+    .welcome-state h2 { font-size: 1.1em; color: #555; font-weight: 600; margin-bottom: 8px; }
+    .welcome-state p { font-size: 0.9em; line-height: 1.6; }
+
+    .player-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .player-chip {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #a5d6a7;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .player-chip:hover { background: #2e7d32; color: white; }
+
+    /* RESULTS COUNT */
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .results-name {
+      font-size: 1em;
+      font-weight: 700;
+      color: #2e7d32;
+    }
+    .results-count {
+      background: #2e7d32;
+      color: white;
+      font-size: 0.78em;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* MATCH CARDS */
+    .match-card {
+      background: white;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 11px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      border-left: 5px solid #4caf50;
+      transition: transform 0.1s;
+    }
+    .match-card:active { transform: scale(0.99); }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .court-badge {
+      font-size: 0.78em;
+      font-weight: 700;
+      color: white;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+    .match-meta {
+      font-size: 0.8em;
+      color: #888;
+    }
+
+    .time-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 11px;
+      font-size: 0.9em;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .matchup {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .team {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .team-label {
+      font-size: 0.68em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #aaa;
+      margin-bottom: 2px;
+    }
+    .player-tag {
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-size: 0.88em;
+      font-weight: 500;
+      background: #f5f5f5;
+      color: #333;
+      text-align: center;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .player-tag.you {
+      background: #e8f5e9;
+      color: #1b5e20;
+      font-weight: 700;
+      border: 1.5px solid #66bb6a;
+      position: relative;
+    }
+    .player-tag.you::after {
+      content: " ★";
+      color: #f9a825;
+    }
+    .player-tag.empty {
+      background: #fafafa;
+      color: #bbb;
+      font-style: italic;
+      font-size: 0.8em;
+    }
+
+    .vs-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 3px;
+      padding: 0 2px;
+    }
+    .vs-text {
+      font-size: 0.8em;
+      font-weight: 800;
+      color: #bbb;
+      letter-spacing: 1px;
+    }
+    .vs-line {
+      width: 1px;
+      flex: 1;
+      background: #eee;
+    }
+
+    .type-chip {
+      display: inline-block;
+      margin-top: 10px;
+      background: #fff8e1;
+      color: #e65100;
+      font-size: 0.73em;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      border: 1px solid #ffe0b2;
+    }
+
+    /* NO RESULTS */
+    .no-results {
+      text-align: center;
+      padding: 48px 20px;
+      color: #999;
+    }
+    .no-results .icon { font-size: 3em; margin-bottom: 10px; }
+    .no-results p { font-size: 0.95em; }
+    .no-results span { color: #2e7d32; font-weight: 700; }
+
+    /* COURT COLORS */
+    .court-19 { border-left-color: #43a047; }
+    .court-19 .court-badge { background: #43a047; }
+    .court-20 { border-left-color: #1e88e5; }
+    .court-20 .court-badge { background: #1e88e5; }
+    .court-21 { border-left-color: #fb8c00; }
+    .court-21 .court-badge { background: #fb8c00; }
+    .court-22 { border-left-color: #8e24aa; }
+    .court-22 .court-badge { background: #8e24aa; }
+    .court-5  { border-left-color: #e53935; }
+    .court-5  .court-badge { background: #e53935; }
+
+    /* CLEAR BUTTON */
+    .clear-btn {
+      position: absolute;
+      right: 52px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 1.1em;
+      cursor: pointer;
+      display: none;
+      padding: 4px;
+    }
+    .clear-btn.show { display: block; }
+
+    /* TABS */
+    .tab-bar {
+      display: flex;
+      background: white;
+      border-top: 1px solid #f0f0f0;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: none;
+      font-size: 0.85em;
+      font-weight: 600;
+      color: #aaa;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      color: #2e7d32;
+      border-bottom-color: #2e7d32;
+    }
+    .tab-btn:hover:not(.active) { color: #555; background: #fafafa; }
+
+    /* COURT SECTION (All Courts view) */
+    .court-section {
+      margin-bottom: 12px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .court-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.15s;
+    }
+    .court-header:active { opacity: 0.85; }
+    .court-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .court-icon { font-size: 1.2em; }
+    .court-title { font-size: 1em; font-weight: 700; color: white; }
+    .court-count {
+      font-size: 0.78em;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+    }
+    .court-chevron {
+      font-size: 0.9em;
+      color: rgba(255,255,255,0.9);
+      transition: transform 0.25s;
+    }
+    .court-chevron.open { transform: rotate(180deg); }
+
+    .court-body {
+      background: #fafafa;
+      padding: 10px;
+      display: none;
+    }
+    .court-body.open { display: block; }
+
+    .court-body .match-card {
+      margin-bottom: 8px;
+    }
+    .court-body .match-card:last-child { margin-bottom: 0; }
+
+    /* court header backgrounds */
+    .ch-19 { background: linear-gradient(90deg, #2e7d32, #43a047); }
+    .ch-20 { background: linear-gradient(90deg, #1565c0, #1e88e5); }
+    .ch-21 { background: linear-gradient(90deg, #e65100, #fb8c00); }
+    .ch-22 { background: linear-gradient(90deg, #6a1b9a, #8e24aa); }
+    .ch-5  { background: linear-gradient(90deg, #b71c1c, #e53935); }
+
+    /* FOOTER */
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #bbb;
+      font-size: 0.78em;
+      margin-top: 8px;
+    }
+
+    /* HEADER SETTINGS BTN */
+    .header { position: relative; }
+    .header-settings-btn {
+      position: absolute; top: 16px; right: 16px;
+      background: rgba(255,255,255,0.2); border: none;
+      border-radius: 50%; width: 36px; height: 36px;
+      cursor: pointer; font-size: 1em; color: white;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .header-settings-btn:hover { background: rgba(255,255,255,0.35); }
+
+    /* MODAL OVERLAY */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200; display: none;
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    /* BOTTOM SHEET */
+    .bottom-sheet {
+      background: white; border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 500px; max-height: 92vh;
+      overflow-y: auto; padding: 16px 20px 28px;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); } to { transform: translateY(0); }
+    }
+    .sheet-handle {
+      width: 36px; height: 4px; background: #e0e0e0;
+      border-radius: 2px; margin: 0 auto 14px;
+    }
+    .sheet-title { font-size: 1.1em; font-weight: 700; color: #1a1a1a; margin-bottom: 3px; }
+    .sheet-subtitle { font-size: 0.83em; color: #999; margin-bottom: 14px; }
+
+    /* SCORE INPUT CONTROLS */
+    .score-section {
+      background: #f8f9f8; border-radius: 14px;
+      padding: 14px; margin-bottom: 14px;
+    }
+    .score-team-label {
+      font-size: 0.82em; font-weight: 600; color: #666;
+      text-align: center; margin-bottom: 8px;
+    }
+    .score-controls {
+      display: flex; align-items: center;
+      justify-content: center; gap: 14px;
+    }
+    .sc-btn {
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 2px solid #ddd; background: white;
+      font-size: 1.4em; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.1s; user-select: none;
+    }
+    .sc-btn:active { transform: scale(0.88); }
+    .sc-btn.minus { color: #e53935; border-color: #ffcdd2; }
+    .sc-btn.minus:active { background: #ffcdd2; }
+    .sc-btn.plus  { color: #2e7d32; border-color: #c8e6c9; }
+    .sc-btn.plus:active  { background: #c8e6c9; }
+    .sc-num {
+      font-size: 2.4em; font-weight: 800; color: #1a1a1a;
+      min-width: 60px; text-align: center; background: white;
+      border: 2px solid #e0e0e0; border-radius: 12px;
+      padding: 4px 8px; line-height: 1.2;
+    }
+    .sc-vs-row {
+      display: flex; align-items: center; gap: 8px;
+      margin: 10px 0; color: #ccc; font-size: 0.72em;
+      font-weight: 700; letter-spacing: 1px;
+    }
+    .sc-vs-row::before, .sc-vs-row::after {
+      content: ''; flex: 1; height: 1px; background: #eee;
+    }
+
+    /* FORM FIELDS */
+    .field-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .field-group { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .field-label { font-size: 0.75em; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
+    .field-input {
+      padding: 9px 12px; border: 1.5px solid #e0e0e0;
+      border-radius: 8px; font-size: 0.9em; outline: none;
+      transition: border-color 0.2s; background: white;
+    }
+    .field-input:focus { border-color: #2e7d32; }
+
+    /* MODAL ACTION BUTTONS */
+    .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .btn-primary {
+      flex: 2; padding: 13px; background: #2e7d32; color: white;
+      border: none; border-radius: 10px; font-size: 0.95em;
+      font-weight: 700; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-primary:active { background: #1b5e20; }
+    .btn-secondary {
+      flex: 1; padding: 13px; background: #f5f5f5; color: #666;
+      border: none; border-radius: 10px; font-size: 0.9em;
+      font-weight: 600; cursor: pointer;
+    }
+    .btn-danger-soft {
+      padding: 13px 14px; background: #fff0f0; color: #e53935;
+      border: none; border-radius: 10px; font-size: 0.9em;
+      font-weight: 600; cursor: pointer;
+    }
+
+    /* SCORE ON CARD */
+    .card-score-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; margin: 10px 0 4px; font-size: 1.5em; font-weight: 800;
+    }
+    .cs-a { color: #2e7d32; }
+    .cs-dash { color: #ddd; }
+    .cs-b { color: #1e88e5; }
+    .winner-pill {
+      display: inline-block; font-size: 0.62em; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px; margin-left: 4px; vertical-align: middle;
+    }
+    .wp-a { background: #e8f5e9; color: #2e7d32; }
+    .wp-b { background: #e3f2fd; color: #1e88e5; }
+    .wp-draw { background: #f5f5f5; color: #888; }
+
+    .record-btn {
+      width: 100%; margin-top: 10px; padding: 8px;
+      background: #f0f7f0; border: 1.5px dashed #a5d6a7;
+      border-radius: 8px; color: #2e7d32; font-size: 0.82em;
+      font-weight: 600; cursor: pointer; transition: all 0.15s;
+    }
+    .record-btn:hover { background: #e8f5e9; border-style: solid; }
+    .record-btn.has-score { background: #e8f5e9; border-style: solid; border-color: #66bb6a; }
+
+    /* SETTINGS SHEET */
+    .info-box {
+      background: #e8f5e9; border-radius: 8px; padding: 10px 13px;
+      font-size: 0.82em; color: #2e7d32; line-height: 1.5; margin-bottom: 14px;
+    }
+    .steps-box {
+      background: #fff8e1; border-radius: 8px; padding: 10px 13px;
+      font-size: 0.79em; color: #555; line-height: 1.75; margin-bottom: 12px;
+    }
+    .steps-box ol { padding-left: 16px; }
+    .steps-box strong { color: #333; }
+    .copy-script-btn {
+      background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px;
+      padding: 5px 11px; font-size: 0.8em; cursor: pointer; color: #444;
+      transition: background 0.15s;
+    }
+    .copy-script-btn:hover { background: #eeeeee; }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #212121; color: white;
+      padding: 11px 22px; border-radius: 24px;
+      font-size: 0.87em; font-weight: 500; z-index: 600;
+      transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+      white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 360px) {
+      .player-tag { font-size: 0.82em; padding: 6px 7px; }
+      .header h1 { font-size: 1.2em; }
+      .sc-num { font-size: 2em; min-width: 50px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="icon">🏓</div>
+  <h1>Lịch Thi Đấu Pickleball</h1>
+  <p>Tìm tên để xem lịch thi đấu của bạn</p>
+  <button class="header-settings-btn" onclick="openSettings()" title="Cài đặt">⚙️</button>
+</div>
+
+<!-- SEARCH BAR + TABS -->
+<div class="search-section">
+  <div class="search-wrapper">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Nhập tên của bạn..."
+      autocomplete="off"
+    />
+    <button class="clear-btn" id="clearBtn" onclick="clearSearch()">✕</button>
+    <button class="search-btn">🔍</button>
+    <div class="suggestions-box" id="suggestionsBox"></div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabSearch" onclick="switchTab('search')">🔍 Tìm kiếm</button>
+    <button class="tab-btn" id="tabAll" onclick="switchTab('all')">🏟️ Tất cả sân</button>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content" id="content">
+  <!-- will be rendered by JS -->
+</div>
+
+<!-- SCORE MODAL -->
+<div class="modal-overlay" id="scoreModal" onclick="closeScoreModal(event)">
+  <div class="bottom-sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📋 Ghi Kết Quả</div>
+    <div class="sheet-subtitle" id="modalSubtitle">—</div>
+
+    <div class="score-section">
+      <div class="score-team-label" id="modalTeamA">Đội A</div>
+      <div class="score-controls">
+        <button class="sc-btn minus" onclick="adjustScore('A',-1)">−</button>
+        <div class="sc-num" id="scoreADisp">0</div>
+        <button class="sc-btn plus"  onclick="adjustScore('A', 1)">+</button>
+      </div>
+      <div class="sc-vs-row">VS</div>
+      <div class="score-controls">
+        <button class="sc-btn minus" onclick="adjustScore('B',-1)">−</button>
+        <div class="sc-num" id="scoreBDisp">0</div>
+        <button class="sc-btn plus"  onclick="adjustScore('B', 1)">+</button>
+      </div>
+      <div class="score-team-label" id="modalTeamB" style="margin-top:8px">Đội B</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">Phân loại</label>
+        <select class="field-input" id="scoreCategory">
+          <option value="Rank">Rank</option>
+          <option value="Friendly">Friendly</option>
+          <option value="Practice">Practice</option>
+          <option value="Tournament">Tournament</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Giải thưởng</label>
+        <input type="number" class="field-input" id="scorePrize" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">ELO Đội A</label>
+        <input type="number" class="field-input" id="eloA" placeholder="—">
+      </div>
+      <div class="field-group">
+        <label class="field-label">ELO Đội B</label>
+        <input type="number" class="field-input" id="eloB" placeholder="—">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeScoreModal()">Hủy</button>
+      <button class="btn-danger-soft" id="clearScoreBtn" onclick="clearScore()" style="display:none">🗑️</button>
+      <button class="btn-primary" onclick="submitScore()">💾 Lưu kết quả</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal" onclick="closeSettingsModal(event)">
+  <div class="bottom-sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">⚙️ Cài Đặt</div>
+
+    <div class="info-box">
+      Kết nối Google Sheets để kết quả được lưu cloud — xem từ bất kỳ thiết bị nào, bất kỳ lúc nào.
+    </div>
+
+    <div class="steps-box">
+      <strong>Cách thiết lập Google Sheets:</strong>
+      <ol>
+        <li>Mở <strong>Google Sheets</strong>, tạo spreadsheet mới</li>
+        <li>Vào <strong>Extensions → Apps Script</strong></li>
+        <li>Xóa code cũ, dán code mới (nút bên dưới), nhấn <strong>Save</strong></li>
+        <li>Nhấn <strong>Deploy → New deployment</strong></li>
+        <li>Type: <em>Web app</em> · Execute as: <em>Me</em> · Access: <em>Anyone</em></li>
+        <li>Nhấn <strong>Deploy</strong>, copy URL và dán vào ô bên dưới</li>
+      </ol>
+    </div>
+
+    <div style="text-align:right; margin-bottom:10px">
+      <button class="copy-script-btn" onclick="copyAppsScript()">📋 Copy Apps Script Code</button>
+    </div>
+
+    <div class="field-group" style="margin-bottom:12px">
+      <label class="field-label">Google Apps Script URL</label>
+      <input type="url" class="field-input" id="settingsUrl" placeholder="https://script.google.com/macros/s/...">
+    </div>
+    <div class="field-group" style="margin-bottom:12px">
+      <label class="field-label">Tên giải đấu</label>
+      <input type="text" class="field-input" id="settingsTournament" placeholder="Pickleball April 2026">
+    </div>
+    <div class="field-group" style="margin-bottom:12px">
+      <label class="field-label">Ngày thi đấu</label>
+      <input type="text" class="field-input" id="settingsDate" placeholder="April 16, 2026">
+    </div>
+
+    <div id="syncStatus" style="display:none;font-size:0.82em;padding:8px 12px;border-radius:8px;margin-bottom:10px;"></div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeSettingsModal()">Đóng</button>
+      <button class="btn-secondary" id="syncNowBtn" onclick="syncNow()" style="flex:1">🔄 Đồng bộ</button>
+      <button class="btn-primary" onclick="saveSettings()">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<div class="footer">Pickleball Schedule · April 2026</div>
+
+<script>
+// ============================================================
+// MATCH DATA
+// ============================================================
+const matches = [
+  // === SÂN 19 ===
+  { court:"Sân 19", no:1, time:"20h15 - 20h30", t1:["ChinhNH","DucPM3"],      t2:["ThinhPH","Suzuki"],       type:"" },
+  { court:"Sân 19", no:2, time:"20h30 - 20h45", t1:["TrungTQ33","MinhBB"],    t2:["ChinhNH","ThinhPH"],      type:"" },
+  { court:"Sân 19", no:3, time:"20h45 - 21h00", t1:["MinhBB","Suzuki"],       t2:["TrungTQ33","DucPM3"],     type:"" },
+  { court:"Sân 19", no:4, time:"21h00 - 21h15", t1:["ThinhPH","DucPM3"],      t2:["ChinhNH","Suzuki"],       type:"" },
+  { court:"Sân 19", no:5, time:"21h15 - 21h30", t1:["ChinhNH","MinhBB"],      t2:["ThinhPH","TrungTQ33"],    type:"" },
+  { court:"Sân 19", no:6, time:"21h30 - 21h45", t1:["MinhBB","DucPM3"],       t2:["TrungTQ33","Suzuki"],     type:"" },
+  { court:"Sân 19", no:7, time:"21h45 - 22h00", t1:["ChinhNH","DucPM3"],      t2:["TuyetPT","LinhHK2"],      type:"" },
+
+  // === SÂN 20 ===
+  { court:"Sân 20", no:1, time:"20h15 - 20h30", t1:["HaDTT7","LinhHK2"],      t2:["NgocDTB10","MuiQT"],      type:"" },
+  { court:"Sân 20", no:2, time:"20h30 - 20h45", t1:["NamPT17","TamCQ"],       t2:["TuyetPT","DuyNK3196"],    type:"" },
+  { court:"Sân 20", no:3, time:"20h45 - 21h00", t1:["LinhHK2","TamCQ"],       t2:["AnhND","LinhTP21"],       type:"" },
+  { court:"Sân 20", no:4, time:"21h00 - 21h15", t1:["MinhBB","TamCQ"],        t2:["TrungTQ33","LinhTP21"],   type:"" },
+  { court:"Sân 20", no:5, time:"21h15 - 21h30", t1:["DucPM3","TamCQ"],        t2:["AnhND","Suzuki"],         type:"" },
+  { court:"Sân 20", no:6, time:"21h30 - 21h45", t1:["ThinhPH","ChinhNH"],     t2:["AnhND","HaDTT7"],         type:"" },
+  { court:"Sân 20", no:7, time:"21h45 - 22h00", t1:["TrungTQ33","DuyNK3196"], t2:["MinhBB","ThinhPH"],       type:"" },
+
+  // === SÂN 21 ===
+  { court:"Sân 21", no:1, time:"20h15 - 20h30", t1:["NamPT17","AnhND"],       t2:["LinhTP21","DuyNK3196"],   type:"" },
+  { court:"Sân 21", no:2, time:"20h30 - 20h45", t1:["MuiQT","VuNT15"],        t2:["TungBV5","NgocDTB10"],    type:"" },
+  { court:"Sân 21", no:3, time:"20h45 - 21h00", t1:["HoangHH2","HaDTT7"],     t2:["TuyetPT","BietNH"],       type:"" },
+  { court:"Sân 21", no:4, time:"21h00 - 21h15", t1:["VuNT15","AnhND"],        t2:["MuiQT","DuyNK3196"],      type:"" },
+  { court:"Sân 21", no:5, time:"21h15 - 21h30", t1:["LinhTP21","HaDTT7"],     t2:["LinhHK2","MuiQT"],        type:"" },
+  { court:"Sân 21", no:6, time:"21h30 - 21h45", t1:["TamCQ","TuyetPT"],       t2:["LinhTP21","MuiQT"],       type:"" },
+  { court:"Sân 21", no:7, time:"21h45 - 22h00", t1:["NgocDTB10","MuiQT"],     t2:["HaDTT7","LinhTP21"],      type:"" },
+
+  // === SÂN 22 ===
+  { court:"Sân 22", no:1, time:"20h15 - 20h30", t1:["AnhTD5","BietNH"],       t2:["TungBV5","VuNT15"],       type:"" },
+  { court:"Sân 22", no:2, time:"20h30 - 20h45", t1:["BietNH","HoangHH2"],     t2:["MinhPT10","AnhTD5"],      type:"" },
+  { court:"Sân 22", no:3, time:"20h45 - 21h00", t1:["TungBV5","MinhPT10"],    t2:["NamPT17","AnhTD5"],       type:"" },
+  { court:"Sân 22", no:4, time:"21h00 - 21h15", t1:["AnhTD5","NgocDTB10"],    t2:["LinhHK2","HoangHH2"],     type:"" },
+  { court:"Sân 22", no:5, time:"21h15 - 21h30", t1:["DuyNK3196","NgocDTB10"], t2:["TuyetPT","NamPT17"],      type:"" },
+  { court:"Sân 22", no:6, time:"21h30 - 21h45", t1:["DuyNK3196","HaDTT7"],    t2:["NgocDTB10","TungBV5"],    type:"" },
+  { court:"Sân 22", no:7, time:"21h45 - 22h00", t1:["NamPT17","AnhND"],       t2:["AnhTD5","TamCQ"],         type:"" },
+
+  // === SÂN 5 ===
+  { court:"Sân 5",  no:1, time:"21h00 - 21h15", t1:["BietNH","TungBV5"],      t2:["MinhPT10","NamPT17"],     type:"" },
+  { court:"Sân 5",  no:2, time:"21h15 - 21h30", t1:["AnhTD5","HoangHH2"],     t2:["MinhPT10","VuNT15"],      type:"" },
+  { court:"Sân 5",  no:3, time:"21h30 - 21h45", t1:["VuNT15","HoangHH2"],     t2:["MinhPT10","BietNH"],      type:"" },
+  { court:"Sân 5",  no:4, time:"21h45 - 22h00", t1:["BietNH","VuNT15"],       t2:["MinhPT10","HoangHH2"],    type:"" },
+];
+
+// ============================================================
+// PLAYER LIST
+// ============================================================
+const allPlayers = [...new Set(
+  matches.flatMap(m => [...m.t1, ...m.t2]).filter(p => p.trim() !== "")
+)].sort();
+
+// ============================================================
+// HELPERS
+// ============================================================
+function courtClass(court) {
+  if (court.includes("19")) return "court-19";
+  if (court.includes("20")) return "court-20";
+  if (court.includes("21")) return "court-21";
+  if (court.includes("22")) return "court-22";
+  if (court.includes("5"))  return "court-5";
+  return "";
+}
+
+function normalize(s) { return s.toLowerCase().trim(); }
+
+function playerInTeam(team, name) {
+  return team.some(p => normalize(p) === normalize(name));
+}
+
+function matchContainsPlayer(match, name) {
+  return playerInTeam(match.t1, name) || playerInTeam(match.t2, name);
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderWelcome() {
+  const content = document.getElementById("content");
+  const chips = allPlayers.map(p =>
+    `<span class="player-chip" onclick="selectPlayer('${p}')">${p}</span>`
+  ).join("");
+
+  content.innerHTML = `
+    <div class="welcome-state">
+      <div class="big-icon">🏓</div>
+      <h2>Tìm lịch thi đấu của bạn</h2>
+      <p>Gõ tên vào ô tìm kiếm phía trên,<br>hoặc chọn tên từ danh sách bên dưới</p>
+      <div class="player-chips">${chips}</div>
+    </div>
+  `;
+}
+
+function renderResults(name) {
+  const content = document.getElementById("content");
+  const found = matches.filter(m => matchContainsPlayer(m, name));
+
+  if (found.length === 0) {
+    content.innerHTML = `
+      <div class="no-results">
+        <div class="icon">🔍</div>
+        <p>Không tìm thấy lịch cho <span>"${name}"</span></p>
+        <p style="margin-top:6px;font-size:0.85em;color:#bbb;">Vui lòng kiểm tra lại tên</p>
+      </div>
+    `;
+    return;
+  }
+
+  const cards = found.map(m => buildMatchCard(m, name)).join("");
+
+  content.innerHTML = `
+    <div class="results-header">
+      <span class="results-name">📋 ${name}</span>
+      <span class="results-count">${found.length} trận</span>
+    </div>
+    ${cards}
+  `;
+}
+
+// ============================================================
+// ALL COURTS VIEW
+// ============================================================
+const courtOrder = ["Sân 19","Sân 20","Sân 21","Sân 22","Sân 5"];
+const courtHeaderClass = {
+  "Sân 19":"ch-19","Sân 20":"ch-20","Sân 21":"ch-21","Sân 22":"ch-22","Sân 5":"ch-5"
+};
+
+let currentTab = "search";
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById("tabSearch").classList.toggle("active", tab === "search");
+  document.getElementById("tabAll").classList.toggle("active", tab === "all");
+
+  const searchInput = document.getElementById("searchInput");
+  const clearBtn = document.getElementById("clearBtn");
+
+  if (tab === "all") {
+    searchInput.disabled = true;
+    searchInput.placeholder = "Chọn tab Tìm kiếm để tìm tên...";
+    clearBtn.classList.remove("show");
+    hideSuggestions();
+    renderAllCourts();
+  } else {
+    searchInput.disabled = false;
+    searchInput.placeholder = "Nhập tên của bạn...";
+    const val = searchInput.value.trim();
+    if (val) {
+      clearBtn.classList.add("show");
+      renderResults(val);
+    } else {
+      renderWelcome();
+    }
+  }
+}
+
+function buildMatchCard(m, highlightName) {
+  const cc    = courtClass(m.court);
+  const saved = pbScores[scoreKey(m.court, m.no)];
+
+  const t1Players = m.t1.map(p => {
+    if (!p) return `<div class="player-tag empty">—</div>`;
+    const isYou = highlightName && normalize(p) === normalize(highlightName);
+    return `<div class="player-tag${isYou ? " you" : ""}">${p}</div>`;
+  }).join("");
+  const t2Players = m.t2.map(p => {
+    if (!p) return `<div class="player-tag empty">—</div>`;
+    const isYou = highlightName && normalize(p) === normalize(highlightName);
+    return `<div class="player-tag${isYou ? " you" : ""}">${p}</div>`;
+  }).join("");
+
+  const typeBadge = m.type ? `<span class="type-chip">🏐 ${m.type}</span>` : "";
+
+  // Score display
+  let scoreRow = '';
+  if (saved) {
+    const winA = saved.scoreA > saved.scoreB;
+    const winB = saved.scoreB > saved.scoreA;
+    const pill = winA
+      ? `<span class="winner-pill wp-a">Đội A thắng</span>`
+      : winB
+        ? `<span class="winner-pill wp-b">Đội B thắng</span>`
+        : `<span class="winner-pill wp-draw">Hòa</span>`;
+    scoreRow = `
+      <div class="card-score-row">
+        <span class="cs-a">${saved.scoreA}</span>
+        <span class="cs-dash"> — </span>
+        <span class="cs-b">${saved.scoreB}</span>
+        ${pill}
+      </div>`;
+  }
+
+  const recLabel = saved ? '✏️ Sửa kết quả' : '📝 Ghi kết quả';
+  const recClass = saved ? 'record-btn has-score' : 'record-btn';
+  const recBtn   = `<button class="${recClass}"
+    onclick="event.stopPropagation(); openScoreModalFor('${m.court.replace(/'/g,"\\'")}', ${m.no})">
+    ${recLabel}</button>`;
+
+  return `
+    <div class="match-card ${cc}">
+      <div class="card-top">
+        <span class="court-badge">${m.court}</span>
+        <span class="match-meta">Trận #${m.no}</span>
+      </div>
+      <div class="time-row"><span>🕐</span><span>${m.time}</span></div>
+      <div class="matchup">
+        <div class="team"><div class="team-label">Đội A</div>${t1Players}</div>
+        <div class="vs-divider">
+          <div class="vs-line"></div>
+          <div class="vs-text">VS</div>
+          <div class="vs-line"></div>
+        </div>
+        <div class="team"><div class="team-label">Đội B</div>${t2Players}</div>
+      </div>
+      ${scoreRow}
+      ${typeBadge}
+      ${recBtn}
+    </div>`;
+}
+
+function renderAllCourts() {
+  const content = document.getElementById("content");
+  const sections = courtOrder.map((court, idx) => {
+    const courtMatches = matches.filter(m => m.court === court);
+    if (courtMatches.length === 0) return "";
+    const hc = courtHeaderClass[court] || "";
+    const cards = courtMatches.map(m => buildMatchCard(m, null)).join("");
+    // Open first court by default
+    const isOpen = idx === 0;
+    return `
+      <div class="court-section">
+        <div class="court-header ${hc}" onclick="toggleCourt('court-body-${idx}', this)">
+          <div class="court-header-left">
+            <span class="court-icon">🏟️</span>
+            <span class="court-title">${court}</span>
+            <span class="court-count">${courtMatches.length} trận</span>
+          </div>
+          <span class="court-chevron ${isOpen ? 'open' : ''}">▼</span>
+        </div>
+        <div class="court-body ${isOpen ? 'open' : ''}" id="court-body-${idx}">
+          ${cards}
+        </div>
+      </div>`;
+  }).join("");
+
+  content.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <span style="font-size:1em;font-weight:700;color:#2e7d32;">🏟️ Tất cả sân</span>
+      <span style="font-size:0.78em;font-weight:600;background:#2e7d32;color:white;padding:3px 10px;border-radius:20px;">${matches.length} trận</span>
+    </div>
+    ${sections}`;
+}
+
+function toggleCourt(bodyId, headerEl) {
+  const body = document.getElementById(bodyId);
+  const chevron = headerEl.querySelector(".court-chevron");
+  const isOpen = body.classList.contains("open");
+  body.classList.toggle("open", !isOpen);
+  chevron.classList.toggle("open", !isOpen);
+}
+
+// ============================================================
+// AUTOCOMPLETE
+// ============================================================
+const input = document.getElementById("searchInput");
+const suggestionsBox = document.getElementById("suggestionsBox");
+const clearBtn = document.getElementById("clearBtn");
+let activeSuggIndex = -1;
+
+input.addEventListener("input", () => {
+  const val = input.value.trim();
+  clearBtn.classList.toggle("show", val.length > 0);
+
+  if (!val) {
+    hideSuggestions();
+    renderWelcome();
+    return;
+  }
+
+  const matches_s = allPlayers.filter(p => normalize(p).includes(normalize(val)));
+
+  if (matches_s.length === 0) {
+    hideSuggestions();
+  } else {
+    showSuggestions(matches_s);
+  }
+
+  // Live search as user types
+  renderResults(val);
+});
+
+input.addEventListener("keydown", (e) => {
+  const items = suggestionsBox.querySelectorAll(".suggestion-item");
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    activeSuggIndex = Math.min(activeSuggIndex + 1, items.length - 1);
+    updateActive(items);
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    activeSuggIndex = Math.max(activeSuggIndex - 1, -1);
+    updateActive(items);
+  } else if (e.key === "Enter") {
+    if (activeSuggIndex >= 0 && items[activeSuggIndex]) {
+      input.value = items[activeSuggIndex].textContent;
+      hideSuggestions();
+      renderResults(input.value);
+      clearBtn.classList.add("show");
+    }
+  } else if (e.key === "Escape") {
+    hideSuggestions();
+  }
+});
+
+function updateActive(items) {
+  items.forEach((el, i) => el.classList.toggle("active", i === activeSuggIndex));
+}
+
+function showSuggestions(list) {
+  activeSuggIndex = -1;
+  suggestionsBox.innerHTML = list.map(p =>
+    `<div class="suggestion-item" onclick="selectPlayer('${p}')">${p}</div>`
+  ).join("");
+  suggestionsBox.classList.add("show");
+}
+
+function hideSuggestions() {
+  suggestionsBox.classList.remove("show");
+  suggestionsBox.innerHTML = "";
+  activeSuggIndex = -1;
+}
+
+function selectPlayer(name) {
+  input.value = name;
+  clearBtn.classList.add("show");
+  hideSuggestions();
+  renderResults(name);
+  input.blur();
+}
+
+function clearSearch() {
+  input.value = "";
+  clearBtn.classList.remove("show");
+  hideSuggestions();
+  renderWelcome();
+  input.focus();
+}
+
+// Close suggestions when clicking outside
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".search-wrapper")) hideSuggestions();
+});
+
+// ============================================================
+// STORAGE
+// ============================================================
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwTDlHsTGQ4uV6qspW-iavegjkOzrW_uvYV0dH3ACGUiXBHLcfOigSXgxHAmyTu9cUZLw/exec';
+
+let pbSettings = {};
+let pbScores   = {};
+let currentMatch = null;
+let scoreAVal = 0, scoreBVal = 0;
+
+function loadStorage() {
+  pbSettings = JSON.parse(localStorage.getItem('pb_settings') || '{}');
+  pbSettings.tournament = pbSettings.tournament || 'Pickleball April 2026';
+  pbSettings.scriptUrl  = pbSettings.scriptUrl  || DEFAULT_SCRIPT_URL;
+  pbSettings.date       = pbSettings.date       || 'April 16, 2026';
+  pbScores = JSON.parse(localStorage.getItem('pb_scores') || '{}');
+}
+
+function scoreKey(court, no) { return `${court}__${no}`; }
+
+function nextMatchID() {
+  const id = parseInt(localStorage.getItem('pb_mid') || '1');
+  localStorage.setItem('pb_mid', id + 1);
+  return id;
+}
+
+// ============================================================
+// SCORE MODAL
+// ============================================================
+function openScoreModalFor(court, no) {
+  const m = matches.find(x => x.court === court && x.no === no);
+  if (!m) return;
+  currentMatch = m;
+  const existing = pbScores[scoreKey(court, no)];
+
+  document.getElementById('modalSubtitle').textContent =
+    `${m.court} · Trận #${m.no} · ${m.time}`;
+  document.getElementById('modalTeamA').textContent =
+    m.t1.filter(p=>p).join(' & ') || '—';
+  document.getElementById('modalTeamB').textContent =
+    m.t2.filter(p=>p).join(' & ') || '—';
+
+  scoreAVal = existing ? existing.scoreA : 0;
+  scoreBVal = existing ? existing.scoreB : 0;
+  document.getElementById('scoreADisp').textContent = scoreAVal;
+  document.getElementById('scoreBDisp').textContent = scoreBVal;
+
+  document.getElementById('scoreCategory').value = existing?.category || 'Rank';
+  document.getElementById('scorePrize').value    = existing?.prize    || '';
+  document.getElementById('eloA').value          = existing?.eloA     || '';
+  document.getElementById('eloB').value          = existing?.eloB     || '';
+  document.getElementById('clearScoreBtn').style.display = existing ? 'block' : 'none';
+
+  document.getElementById('scoreModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeScoreModal(e) {
+  if (e && e.target !== document.getElementById('scoreModal')) return;
+  document.getElementById('scoreModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function adjustScore(team, delta) {
+  if (team === 'A') {
+    scoreAVal = Math.max(0, scoreAVal + delta);
+    document.getElementById('scoreADisp').textContent = scoreAVal;
+  } else {
+    scoreBVal = Math.max(0, scoreBVal + delta);
+    document.getElementById('scoreBDisp').textContent = scoreBVal;
+  }
+}
+
+async function submitScore() {
+  if (!currentMatch) return;
+  const key      = scoreKey(currentMatch.court, currentMatch.no);
+  const isNew    = !pbScores[key];
+  const matchID  = isNew ? nextMatchID() : (pbScores[key].matchID || nextMatchID());
+  const winner   = scoreAVal > scoreBVal ? 'TeamA' : scoreBVal > scoreAVal ? 'TeamB' : 'Draw';
+
+  const row = {
+    matchID,
+    matchNo:    currentMatch.no,
+    date:       pbSettings.date,
+    court:      currentMatch.court,
+    player1:    currentMatch.t1[0] || '',
+    player2:    currentMatch.t1[1] || '',
+    scoreA:     scoreAVal,
+    scoreB:     scoreBVal,
+    player3:    currentMatch.t2[0] || '',
+    player4:    currentMatch.t2[1] || '',
+    matchType:  'Doubles',
+    winnerTeam: winner,
+    category:   document.getElementById('scoreCategory').value,
+    prize:      document.getElementById('scorePrize').value,
+    eloA:       document.getElementById('eloA').value,
+    eloB:       document.getElementById('eloB').value,
+    tournament: pbSettings.tournament
+  };
+
+  // Save locally
+  pbScores[key] = row;
+  localStorage.setItem('pb_scores', JSON.stringify(pbScores));
+
+  // Send to Google Sheets
+  if (pbSettings.scriptUrl) {
+    try {
+      await fetch(pbSettings.scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(row)
+      });
+      showToast('✅ Đã lưu lên Google Sheets!');
+    } catch(err) {
+      showToast('💾 Lưu cục bộ · Lỗi kết nối Google Sheets');
+    }
+  } else {
+    showToast('💾 Đã lưu · Vào ⚙️ để cài đặt Google Sheets');
+  }
+
+  document.getElementById('scoreModal').classList.remove('open');
+  document.body.style.overflow = '';
+  refreshView();
+}
+
+function clearScore() {
+  if (!currentMatch) return;
+  delete pbScores[scoreKey(currentMatch.court, currentMatch.no)];
+  localStorage.setItem('pb_scores', JSON.stringify(pbScores));
+  showToast('🗑️ Đã xóa kết quả');
+  document.getElementById('scoreModal').classList.remove('open');
+  document.body.style.overflow = '';
+  refreshView();
+}
+
+// ============================================================
+// SETTINGS MODAL
+// ============================================================
+function openSettings() {
+  document.getElementById('settingsUrl').value        = pbSettings.scriptUrl  || '';
+  document.getElementById('settingsTournament').value = pbSettings.tournament || '';
+  document.getElementById('settingsDate').value       = pbSettings.date       || '';
+  document.getElementById('syncStatus').style.display = 'none';
+  document.getElementById('settingsModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSettingsModal(e) {
+  if (e && e.target !== document.getElementById('settingsModal')) return;
+  document.getElementById('settingsModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function saveSettings() {
+  const newUrl = document.getElementById('settingsUrl').value.trim();
+  const urlChanged = newUrl !== pbSettings.scriptUrl;
+  pbSettings.scriptUrl  = newUrl;
+  pbSettings.tournament = document.getElementById('settingsTournament').value.trim() || 'Pickleball April 2026';
+  pbSettings.date       = document.getElementById('settingsDate').value.trim()       || 'April 16, 2026';
+  localStorage.setItem('pb_settings', JSON.stringify(pbSettings));
+  showToast('✅ Đã lưu cài đặt');
+  closeSettingsModal();
+  // Auto-sync when a new URL is saved
+  if (urlChanged && newUrl) loadFromGoogleSheets(false);
+}
+
+// ============================================================
+// APPS SCRIPT CODE TO COPY
+// ============================================================
+const APPS_SCRIPT = `// Columns: MatchID, MatchNo, Date, Court, Player1, Player2,
+//          ScoreA, ScoreB, Player3, Player4, MatchType,
+//          WinnerTeam, Category, Prize, TeamA_ELO, TeamB_ELO, Tournament
+
+function getOrCreateSheet(ss) {
+  let sheet = ss.getSheetByName('Results');
+  if (!sheet) {
+    sheet = ss.insertSheet('Results');
+    const headers = ['MatchID','MatchNo','Date','Court','Player1','Player2',
+      'ScoreA','ScoreB','Player3','Player4','MatchType',
+      'WinnerTeam','Category','Prize','TeamA_ELO','TeamB_ELO','Tournament'];
+    sheet.appendRow(headers);
+    sheet.getRange(1,1,1,headers.length)
+      .setFontWeight('bold').setBackground('#2e7d32').setFontColor('white');
+  }
+  return sheet;
+}
+
+function doGet(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('Results');
+    if (!sheet || sheet.getLastRow() < 2) {
+      return ContentService
+        .createTextOutput(JSON.stringify({status:'ok', data:[]}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    const rows = sheet.getDataRange().getValues();
+    const headers = rows[0];
+    const data = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i]; });
+      return obj;
+    });
+    return ContentService
+      .createTextOutput(JSON.stringify({status:'ok', data}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({error: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = getOrCreateSheet(ss);
+    const d = JSON.parse(e.postData.contents);
+    const newRow = [d.matchID, d.matchNo, d.date, d.court,
+      d.player1, d.player2, d.scoreA, d.scoreB,
+      d.player3, d.player4, d.matchType, d.winnerTeam,
+      d.category, d.prize, d.eloA, d.eloB, d.tournament];
+
+    // Upsert: find existing row by matchID and update it
+    const lastRow = sheet.getLastRow();
+    let updated = false;
+    if (lastRow > 1) {
+      const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+      for (let i = 0; i < ids.length; i++) {
+        if (String(ids[i][0]) === String(d.matchID)) {
+          sheet.getRange(i + 2, 1, 1, newRow.length).setValues([newRow]);
+          updated = true;
+          break;
+        }
+      }
+    }
+    if (!updated) sheet.appendRow(newRow);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({status:'ok', updated}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({error: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+
+function copyAppsScript() {
+  navigator.clipboard.writeText(APPS_SCRIPT).then(
+    () => showToast('📋 Đã copy code Apps Script!'),
+    () => {
+      const ta = document.createElement('textarea');
+      ta.value = APPS_SCRIPT;
+      document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('📋 Đã copy code Apps Script!');
+    }
+  );
+}
+
+// ============================================================
+// SYNC FROM GOOGLE SHEETS
+// ============================================================
+async function loadFromGoogleSheets(silent) {
+  if (!pbSettings.scriptUrl) return false;
+  try {
+    if (!silent) showToast('🔄 Đang tải dữ liệu từ Google Sheets...');
+    const res = await fetch(pbSettings.scriptUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    if (json.status === 'ok' && Array.isArray(json.data)) {
+      json.data.forEach(row => {
+        const court   = String(row['Court']   || '').trim();
+        const matchNo = parseInt(row['MatchNo']);
+        if (!court || isNaN(matchNo)) return;
+        const key = scoreKey(court, matchNo);
+        pbScores[key] = {
+          matchID:    row['MatchID'],
+          matchNo:    matchNo,
+          date:       row['Date'],
+          court:      court,
+          player1:    row['Player1'],
+          player2:    row['Player2'],
+          scoreA:     parseInt(row['ScoreA'])  || 0,
+          scoreB:     parseInt(row['ScoreB'])  || 0,
+          player3:    row['Player3'],
+          player4:    row['Player4'],
+          matchType:  row['MatchType'],
+          winnerTeam: row['WinnerTeam'],
+          category:   row['Category'],
+          prize:      row['Prize'],
+          eloA:       row['TeamA_ELO'],
+          eloB:       row['TeamB_ELO'],
+          tournament: row['Tournament']
+        };
+      });
+      localStorage.setItem('pb_scores', JSON.stringify(pbScores));
+      if (!silent) showToast('✅ Đồng bộ xong · ' + json.data.length + ' kết quả');
+      refreshView();
+      return true;
+    }
+  } catch(err) {
+    console.error('loadFromGoogleSheets:', err);
+    if (!silent) showToast('⚠️ Không thể kết nối Google Sheets');
+  }
+  return false;
+}
+
+async function syncNow() {
+  const btn = document.getElementById('syncNowBtn');
+  const status = document.getElementById('syncStatus');
+  const url = document.getElementById('settingsUrl').value.trim();
+  if (!url) {
+    status.style.display = 'block';
+    status.style.background = '#fff8e1';
+    status.style.color = '#e65100';
+    status.textContent = '⚠️ Chưa nhập Google Apps Script URL';
+    return;
+  }
+  // Save URL temporarily so loadFromGoogleSheets can use it
+  const prevUrl = pbSettings.scriptUrl;
+  pbSettings.scriptUrl = url;
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang đồng bộ...';
+  status.style.display = 'none';
+
+  const ok = await loadFromGoogleSheets(false);
+
+  btn.disabled = false;
+  btn.textContent = '🔄 Đồng bộ';
+  status.style.display = 'block';
+  if (ok) {
+    status.style.background = '#e8f5e9';
+    status.style.color = '#2e7d32';
+    status.textContent = '✅ Đồng bộ thành công từ Google Sheets!';
+  } else {
+    pbSettings.scriptUrl = prevUrl;
+    status.style.background = '#fff0f0';
+    status.style.color = '#e53935';
+    status.textContent = '❌ Không thể kết nối. Kiểm tra lại URL và quyền truy cập.';
+  }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ============================================================
+// REFRESH HELPER
+// ============================================================
+function refreshView() {
+  if (currentTab === 'all') {
+    renderAllCourts();
+  } else {
+    const val = document.getElementById('searchInput').value.trim();
+    val ? renderResults(val) : renderWelcome();
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadStorage();
+renderWelcome();
+// Auto-sync from Google Sheets on startup (silent — won't show toast until done)
+loadFromGoogleSheets(false);
+</script>
+</body>
+</html>
